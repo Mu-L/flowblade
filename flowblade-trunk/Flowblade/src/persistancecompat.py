@@ -59,6 +59,9 @@ def FIX_MISSING_MEDIA_FILE_ATTRS(media_file):
     if not hasattr(media_file, "link_seq_data"):
         media_file.link_seq_data = None
 
+    if not hasattr(media_file, "is_temp_transcode_target"):
+        media_file.is_temp_transcode_target = False
+
 def FIX_MISSING_CLIP_ATTRS(clip):
     # Add color attribute if not found
     if not hasattr(clip, "color"):

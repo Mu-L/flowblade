@@ -409,27 +409,36 @@ class ProxyProjectLoadThread(threading.Thread):
 
 
 # --------------------------------------------- transcoding
-def create_transcode_files(media_items, enc_index, external_render_folder, action_index):
+# Different transcode cases requiring different code paths all go though here.
+# MEDIA ADD TRANSCODE: first load, no profile update for non-matching profile 
+# MEDIA ADD TRANSCODE: first load, do profile update for non-matching profile 
+# MEDIA ADD TRANSCODE: first load, matching profile 
+# MEDIA ADD TRANSCODE: not first load
+# EXISTING MEDIA TRANSCODE: create new media item
+# EXISTING MEDIA TRANSCODE: replace media item, no clips need to replaced
+# EXISTING MEDIA TRANSCODE: replace media item, clips need to replaced
+def create_transcode_files(media_items, enc_index, external_render_folder, action_index, is_media_add_transcode):
     proxy_profile = _get_proxy_profile(editorstate.PROJECT())
 
     global runner_thread
-    runner_thread = TranscodeRenderJobsCreateThread(media_items, enc_index, external_render_folder, action_index)
+    runner_thread = TranscodeRenderJobsCreateThread(media_items, enc_index, external_render_folder, action_index, is_media_add_transcode)
     runner_thread.start()
     
 
 class TranscodeRenderJobsCreateThread(threading.Thread):
-    def __init__(self, media_items, enc_index, external_render_folder, action_index):
+    def __init__(self, media_items, enc_index, external_render_folder, action_index, is_media_add_transcode):
         threading.Thread.__init__(self)
         self.media_items = media_items
         self.enc_index = enc_index
         self.external_render_folder = external_render_folder
         self.action_index = action_index
+        self.is_media_add_transcode = is_media_add_transcode
 
     def run(self):
         w = editorstate.PROJECT().profile.width()
         h = editorstate.PROJECT().profile.height()
 
-        encoding = renderconsumer.ingest_encodings[self.enc_index]
+        encoding = renderconsumer.transcode_encodings[self.enc_index]
         proxy_rate = -1
 
         transcode_render_items = []
@@ -464,6 +473,8 @@ class TranscodeRenderJobsCreateThread(threading.Thread):
                                                                 action)
             if i == len(transcode_render_items) - 1:
                 job_queue_object.apply_multi_replace = True
+
+            job_queue_object.is_media_add_transcode = self.is_media_add_transcode
 
             job_queue_object.add_to_queue()
 

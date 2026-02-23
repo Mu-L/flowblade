@@ -798,13 +798,14 @@ def replace_single_file(project, old_media_path, replace_media_path):
 
     _relink_project_media_paths()
 
+    # Check if this is ever needed
     temp_saved_project_path = os.path.join(userfolders.get_cache_dir(), REPLACE_TEMP_PROJECT)
     persistance.save_project(target_project, temp_saved_project_path)
         
     return temp_saved_project_path
 
 # path_replace_dict: old_media_path->replace_media_path
-def replace_multiple_files(project, path_replace_dict):
+def replace_multiple_files(project, path_replace_dict, is_media_add_transcode):
     global target_project
     target_project = project
 
@@ -816,6 +817,14 @@ def replace_multiple_files(project, path_replace_dict):
 
     _relink_project_media_paths()
 
+    if is_media_add_transcode == True:
+        return None
+
+    # Do media replace only if needed
+    if editorstate.PROJECT().clip_media_exists(path_replace_dict.keys()) == False:
+        return None
+
+    # Check if this is ever needed.
     temp_saved_project_path = os.path.join(userfolders.get_cache_dir(), REPLACE_TEMP_PROJECT)
     persistance.save_project(target_project, temp_saved_project_path)
 

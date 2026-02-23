@@ -798,6 +798,7 @@ class ProxyRenderJobQueueObject(AbstractJobQueueObject):
         self.parent_folder = userfolders.get_temp_render_dir()
         self.completed_action = completed_action
         self.apply_multi_replace = False
+        self.is_media_add_transcode = False
 
     def get_job_name(self):
         folder, file_name = os.path.split(self.render_data.media_file_path)
@@ -921,6 +922,7 @@ class ProxyRenderJobQueueObject(AbstractJobQueueObject):
         
     def proxy_render_complete(self):
         if self.render_data.is_transcode == False:
+            # Proxy render.
             try:
                 media_file = PROJECT().media_files[self.render_data.media_file_id]
             except:
@@ -940,7 +942,12 @@ class ProxyRenderJobQueueObject(AbstractJobQueueObject):
                 elif len(proxy_jobs) == 1:
                     self.render_data.do_auto_re_convert_func()
         else:
-            if self.completed_action == self.TRANSCODE_COMPLETED_ACTION_ADD_MEDIA_ITEM:
+            # Transcode render.
+            print(self.completed_action, self.is_media_add_transcode)
+
+            if self.is_media_add_transcode == False and self.completed_action == self.TRANSCODE_COMPLETED_ACTION_ADD_MEDIA_ITEM:
+                print("add")
+                # Add new media item, do not replace existing one
                 file_path = self.render_data.proxy_file_path
                 (directory, file_name) = os.path.split(str(self.render_data.media_file_path))
                 (name, ext) = os.path.splitext(file_name)
@@ -951,11 +958,26 @@ class ProxyRenderJobQueueObject(AbstractJobQueueObject):
                 max_val = gui.editor_window.media_scroll_window.get_vadjustment().get_upper()
                 gui.editor_window.media_scroll_window.get_vadjustment().set_value(max_val)
             else:
+                print("replace")
+                # Replace existing media item.
+                # Media add transcodes are always replace, existing media transcodes on request.
                 global _transcode_multi_replace
                 _transcode_multi_replace[self.render_data.media_file_path] = self.render_data.proxy_file_path
                 
                 if self.apply_multi_replace == True:
-                    medialinker.replace_multiple_files(PROJECT(), copy.deepcopy(_transcode_multi_replace))
+                    temp_saved_project_path = medialinker.replace_multiple_files(PROJECT(), copy.deepcopy(_transcode_multi_replace), self.is_media_add_transcode)
+                    # We need to to project load only is timeline clips affected.
+                    if temp_saved_project_path != None:
+                        callbackbridge.projectaction_actually_load_project(temp_saved_project_path, block_recent_files=False, is_first_video_load=False, is_autosave_load=False, replace_media_file_path=None)
+                    
+                    # Media add transcodes need media item icons updated.
+                    if self.is_media_add_transcode == True:
+                        for source_media_path, transcoded_media_path in _transcode_multi_replace.items():
+                            media_file = PROJECT().get_media_file_for_path(transcoded_media_path)
+                            media_file.icon_path = media_file.transcode_source_icon_path
+                            media_file.create_icon()
+                            delattr(media_file, "transcode_source_icon_path")    
+
                     _transcode_multi_replace = {}
         
 

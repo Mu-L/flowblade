@@ -589,6 +589,18 @@ class Sequence:
         
         return False
 
+    def clip_for_media_path_is_in_sequence(self, path_list):
+        for i in range(1, len(self.tracks)):
+            track = self.tracks[i]
+            for clip in track.clips:
+                try:
+                    if clip.path in path_list:
+                        return True
+                except:
+                    pass
+                    
+        return False
+
     # ------------------------------------------ blanks
     def create_and_insert_blank(self, track, index, length):
         """

@@ -388,7 +388,15 @@ class ProxyRenderIssuesWindow:
 
 
 #--------------------------------------------- transcode dialog
-def show_transcode_dialog(media_items):
+# Different transcode cases requiring different code paths all go though here.
+# MEDIA ADD TRANSCODE: first load, no profile update for non-matching profile 
+# MEDIA ADD TRANSCODE: first load, do profile update for non-matching profile 
+# MEDIA ADD TRANSCODE: first load, matching profile 
+# MEDIA ADD TRANSCODE: not first load
+# EXISTING MEDIA TRANSCODE: create new media item
+# EXISTING MEDIA TRANSCODE: replace media item, no clips need to replaced
+# EXISTING MEDIA TRANSCODE: replace media item, clips need to replaced
+def show_transcode_dialog(media_items, is_media_add_transcode=False):
     _maybe_create_ingest_data()
     
     dialog = Gtk.Dialog(_("Transcode Media"), None,
@@ -405,8 +413,8 @@ def show_transcode_dialog(media_items):
     action_vbox = guiutils.get_vbox([action_row], False)
     action_frame = guiutils.get_named_frame(_("Action"), action_vbox)
  
-    transcode_combo = _get_transcode_encoding_combo()
-    enc_row = guiutils.get_two_column_box(Gtk.Label(label=_("Transcode Encoding:")), transcode_combo,  250)
+    encoding_combo = _get_transcode_encoding_combo()
+    enc_row = guiutils.get_two_column_box(Gtk.Label(label=_("Transcode Encoding:")), encoding_combo,  250)
     enc_vbox = guiutils.get_vbox([enc_row], False)
     enc_frame = guiutils.get_named_frame(_("Encoding"), enc_vbox)
 
@@ -429,14 +437,17 @@ def show_transcode_dialog(media_items):
     target_vbox = guiutils.get_vbox([target_row, data_folder_row], False)
     target_frame = guiutils.get_named_frame(_("Save Location"), target_vbox)
 
-    vbox = guiutils.get_vbox([action_frame, enc_frame, target_frame], False)
+    if is_media_add_transcode == False:
+        vbox = guiutils.get_vbox([action_frame, enc_frame, target_frame], False)
+    else:
+        vbox = guiutils.get_vbox([enc_frame, target_frame], False)
 
     alignment = dialogutils.get_default_alignment(vbox)
     dialogutils.set_outer_margins(dialog.vbox)
     dialog.vbox.pack_start(alignment, True, True, 0)
     dialog.set_default_response(Gtk.ResponseType.OK)
     dialog.set_resizable(False)
-    dialog.connect('response', _transcode_response_callback, media_items, action_combo, transcode_combo, target_folder_combo, data_folder_button)
+    dialog.connect('response', _transcode_response_callback, media_items, action_combo, encoding_combo, target_folder_combo, data_folder_button, is_media_add_transcode)
     
     dialog.show_all()
 
@@ -448,27 +459,29 @@ def _terget_changed(target_combo, folder_label, data_folder_button):
         folder_label.set_sensitive(True)
         data_folder_button.set_sensitive(True)
 
-def _transcode_response_callback(dialog, response_id, media_items, action_combo, transcode_combo, target_folder_combo, data_folder_button):
+def _transcode_response_callback(dialog, response_id, media_items, action_combo, encoding_combo, target_folder_combo, data_folder_button, is_media_add_transcode):
     if response_id == Gtk.ResponseType.ACCEPT: 
-        enc_index = transcode_combo.get_active()
+        enc_index = encoding_combo.get_active()
         if target_folder_combo.get_active() == 0:
             external_render_folder = None
         else:
             external_render_folder = data_folder_button.get_filename() + "/"
+        action = action_combo.get_active()
         dialog.destroy()
-        proxyediting.create_transcode_files(media_items, enc_index, external_render_folder, action_combo.get_active())
+        print(enc_index, external_render_folder, action, is_media_add_transcode)
+        proxyediting.create_transcode_files(media_items, enc_index, external_render_folder, action, is_media_add_transcode)
     else:
         dialog.destroy()
     
 def _get_transcode_encoding_combo():
     ingest_enc_select = Gtk.ComboBoxText()
-    encodings = renderconsumer.ingest_encodings
+    encodings = renderconsumer.transcode_encodings
 
     if len(encodings) < 1: # no encoding options available, system does not have right codecs
-        editorstate.PROJECT().ingest_data.set_default_encoding(miscdataobjects.INGEST_ENCODING_NOT_SET)
+        editorstate.PROJECT().ingest_data.set_default_encoding(miscdataobjects.TRANSCODE_ENCODING_NOT_SET)
         self.ingest_enc_select.append_text(_("No Encoding Options Available"))
     else:
-        if editorstate.PROJECT().ingest_data.get_default_encoding() == miscdataobjects.INGEST_ENCODING_NOT_SET:
+        if editorstate.PROJECT().ingest_data.get_default_encoding() == miscdataobjects.TRANSCODE_ENCODING_NOT_SET:
             # Environment has changed and ingest encodigns are now available.
             editorstate.PROJECT().ingest_data.set_default_encoding(0)
             
@@ -483,3 +496,6 @@ def _get_transcode_encoding_combo():
         ingest_enc_select.set_active(current_enc)
 
     return ingest_enc_select
+
+
+    

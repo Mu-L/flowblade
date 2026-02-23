@@ -59,6 +59,7 @@ movemodes_select_from_box_selection = None
 
 projectaction_open_rendered_file = None
 projectaction_open_file_names = None
+projectaction_actually_load_project = None
 
 proxytranscodemanager_show_proxy_issues_window = None
 

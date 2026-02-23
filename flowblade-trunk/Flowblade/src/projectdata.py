@@ -50,7 +50,7 @@ SAVEFILE_VERSION = 5 # This has freezed at 5 for long time,
                      # we have used just hasattr() instead.
 
 FALLBACK_THUMB = "fallback_thumb.png"
-
+TRANSCODE_TEMP_THUMB = "transcode_temp_thumb.png"
  
 # Project events
 EVENT_CREATED_BY_NEW_DIALOG = 0
@@ -181,6 +181,12 @@ class Project:
         
         return media_object
 
+    def add_transcode_target_media_file(self, file_path, non_file_clip_name, target_bin):
+        media_object = self.add_media_file(file_path, non_file_clip_name, target_bin)
+        media_object.is_temp_transcode_target = True # to block GUI interaction.
+        media_object.set_to_transcode_temp_icon()
+        return media_object
+        
     def add_title_item(self, name, file_path, title_data, target_bin):
         (directory, file_name) = os.path.split(file_path)
         (fn, ext) = os.path.splitext(file_name)
@@ -220,6 +226,8 @@ class Project:
         
         self.media_files[media_object.id] = media_object
         self.next_media_file_id += 1
+
+        media_object.is_temp_transcode_target = False
 
         # Add to bin
         if target_bin == None:
@@ -300,6 +308,14 @@ class Project:
             unused.append(media_item)
         return unused
     
+    def clip_media_exists(self, path_list):
+        for seq in self.sequences:
+            media_in_seq = seq.clip_for_media_path_is_in_sequence(path_list)
+            if media_in_seq == True:
+                return True
+
+        return False
+
     def get_current_proxy_paths(self):
         paths_dict = {}
         for idkey, media_file in list(self.media_files.items()):
@@ -504,6 +520,11 @@ class MediaFile:
         except:
             print("failed to make icon from:", self.icon_path)
             self.icon_path = respaths.IMAGE_PATH + FALLBACK_THUMB
+            self.icon = self._create_image_surface(self.icon_path)
+
+    def set_to_transcode_temp_icon(self):
+            self.transcode_source_icon_path = self.icon_path
+            self.icon_path = respaths.IMAGE_PATH + TRANSCODE_TEMP_THUMB
             self.icon = self._create_image_surface(self.icon_path)
 
     def _create_image_surface(self, path):

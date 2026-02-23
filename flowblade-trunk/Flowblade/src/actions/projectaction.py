@@ -126,11 +126,16 @@ class LoadThread(threading.Thread):
         self.is_first_video_load = is_first_video_load
         self.is_autosave_load = is_autosave_load
         self.replace_media_file_path = None
+        self.transcode_info = None
+
         threading.Thread.__init__(self)
 
     def set_replace_media_path(self, replace_media_file_path):
         self.replace_media_file_path = replace_media_file_path
 
+    def set_transcode_info(self, transcode_info):
+        self.transcode_info = transcode_info
+        
     def run(self):
         ticker = utils.Ticker(_load_pulse_bar, 0.15)
         ticker.start_ticker()
@@ -184,7 +189,7 @@ class LoadThread(threading.Thread):
         
         callbackbridge.app_open_project(project) # <-- HERE
 
-        if self.block_recent_files: # naming flipped ????
+        if self.block_recent_files: # FIX: naming has flipped.
             editorpersistance.add_recent_project_path(self.filename)
             gui.editor_window.fill_recents_menu_widget(gui.editor_window.uimanager.get_widget('/MenuBar/FileMenu/OpenRecent'), open_recent_project)
             
@@ -227,7 +232,18 @@ class LoadThread(threading.Thread):
 
             gui.media_list_view.widget.queue_draw()
             updater.repaint_tline()
-
+    
+        # Update icons for media add transcoded files.
+        if self.transcode_info != None:
+            print("update transcoded", self.transcode_info)
+            for old_media_file in self.transcode_info:
+                media_file = PROJECT().get_media_file_for_path(old_media_file.path)
+                media_file.icon_path = media_file.transcode_source_icon_path
+                media_file.create_icon()
+                delattr(media_file, "transcode_source_icon_path")    
+            
+            gui.media_list_view.widget.queue_draw()
+                
     def _exit_on_file_not_found_error(self, e, ticker):
         print("LoadThread.run() - FileProducerNotFoundError")
         self._error_stop(self.dialog, ticker)
@@ -291,9 +307,12 @@ class AddMediaFilesThread(threading.Thread):
         duplicates = []
         anim_gif_name = None
         extension_refused = []
+        to_be_transcoded = []
+        audio_levels_render_files = []
         target_bin = PROJECT().c_bin
         succes_new_file = None
         filenames = self.filenames
+
         for new_file in filenames:
             (folder, file_name) = os.path.split(new_file)
             
@@ -316,11 +335,28 @@ class AddMediaFilesThread(threading.Thread):
             if PROJECT().media_file_exists(new_file):
                 duplicates.append(file_name)
             else:
-                try:
-                    PROJECT().add_media_file(new_file, self.compound_clip_name, target_bin)
-                    succes_new_file = new_file
-                except projectdata.ProducerNotValidError as err:
-                    GLib.idle_add(self._not_valid_producer, err)
+                was_transcode_target_file = False 
+                
+                # See if file to be transcoded on add.
+                if PROJECT().ingest_data != None and PROJECT().ingest_data.data[appconsts.INGEST_ACTION] == appconsts.INGEST_ACTION_TRANSCODE_ALL:
+                    if media_type == appconsts.VIDEO:
+                        was_transcode_target_file = True
+                        try:
+                            transcode_media_object = PROJECT().add_transcode_target_media_file(new_file, None, target_bin)
+                            to_be_transcoded.append(transcode_media_object)
+                            audio_levels_render_files.append(new_file)
+                            succes_new_file = new_file
+                        except projectdata.ProducerNotValidError as err:
+                            GLib.idle_add(self._not_valid_producer, err)
+                        
+                if was_transcode_target_file == False:
+                    # Main case, no transcode.
+                    try:
+                        PROJECT().add_media_file(new_file, self.compound_clip_name, target_bin)
+                        audio_levels_render_files.append(new_file)
+                        succes_new_file = new_file
+                    except projectdata.ProducerNotValidError as err:
+                        GLib.idle_add(self._not_valid_producer, err)
 
             self.list_view_update_done = False
             GLib.idle_add(self._list_view_update)
@@ -344,9 +380,13 @@ class AddMediaFilesThread(threading.Thread):
             GLib.timeout_add(10, _duplicates_info, duplicates)
 
         if is_first_video_load:
-            GLib.timeout_add(10, _first_load_profile_check)
-            
-        audiowaveformrenderer.launch_audio_levels_rendering(filenames)
+            GLib.timeout_add(10, _first_load_profile_check, self, to_be_transcoded)
+        
+        if len(to_be_transcoded) == 0:
+            audiowaveformrenderer.launch_audio_levels_rendering(audio_levels_render_files)
+        elif is_first_video_load == False:
+            GLib.idle_add(self._start_media_add_transcode, to_be_transcoded)
+            #audiowaveformrenderer.launch_audio_levels_rendering(audio_levels_render_files)
 
     def _list_view_update(self):
         gui.media_list_view.fill_data_model()
@@ -391,6 +431,8 @@ class AddMediaFilesThread(threading.Thread):
     def _not_valid_producer(self, err):
         dialogs.not_valid_producer_dialog(err, gui.editor_window.window)
 
+    def _start_media_add_transcode(self, media_items):
+        proxytranscodemanager.show_transcode_dialog(media_items, True)
 
 
 class AddTitleItemThread(threading.Thread):
@@ -468,14 +510,19 @@ def _duplicates_info(duplicates):
     dialogutils.info_message(primary_txt, secondary_txt, gui.editor_window.window)
     return False
 
-def _first_load_profile_check():
+def _first_load_profile_check(media_add_thread, to_be_transcoded):
+    profile_matched = True
     for uid, media_file in PROJECT().media_files.items():
         if media_file.type == appconsts.VIDEO:
             if media_file.matches_project_profile() == False:
-                dialogs.not_matching_media_info_dialog(PROJECT(), media_file, _not_matching_media_info_callback)
+                profile_matched = False
+                dialogs.not_matching_media_info_dialog(PROJECT(), media_file, to_be_transcoded, _not_matching_media_info_callback)
                 break
 
-def _not_matching_media_info_callback(dialog, response_id, media_file):
+    if profile_matched == True and len(to_be_transcoded) > 0:
+        GLib.idle_add(media_add_thread._start_media_add_transcode, to_be_transcoded)
+
+def _not_matching_media_info_callback(dialog, response_id, media_file, to_be_transcoded):
     dialog.destroy()
     
     match_profile_index = mltprofiles.get_closest_matching_profile_index(media_file.info)
@@ -496,8 +543,15 @@ def _not_matching_media_info_callback(dialog, response_id, media_file):
         
         persistance.save_project(PROJECT(), path, profile.description()) #<----- HERE
 
-        actually_load_project(path, False, True)
-
+        if len(to_be_transcoded) > 0:
+            transcode_update_load_project(path, to_be_transcoded)
+        else:
+            actually_load_project(path, False, True)
+    else:
+        if len(to_be_transcoded) > 0:
+            print("haloo")
+            proxytranscodemanager.show_transcode_dialog(to_be_transcoded, True)
+                    
 def _load_pulse_bar():
     GLib.idle_add(persistance.load_dialog.progress_bar.pulse)
     
@@ -584,11 +638,22 @@ def actually_load_project(filename, block_recent_files=False, is_first_video_loa
     dialog = dialogs.load_dialog()
     persistance.load_dialog = dialog
 
-    load_launch = LoadThread(dialog, filename, block_recent_files, is_first_video_load, is_autosave_load)
+    load_launch = LoadThread(dialog, filename, False, is_first_video_load, is_autosave_load)
     if replace_media_file != None:
         load_launch.set_replace_media_path(replace_media_file_path)
     load_launch.start()
 
+def transcode_update_load_project(filename, transcoded_files):
+    gui.tline_canvas.disconnect_mouse_events() # mouse events dutring load cause crashes because there is no data to handle
+    updater.set_info_icon("document-open")
+
+    dialog = dialogs.load_dialog()
+    persistance.load_dialog = dialog
+
+    load_launch = LoadThread(dialog, filename, True, False, False)
+    load_launch.set_transcode_info(transcoded_files)
+    load_launch.start()
+    
 def save_project():
     if PROJECT().last_save_path == None:
         save_project_as()
@@ -1310,7 +1375,6 @@ def _replace_media_callback(dialog, media_file, replace_file):
     temp_saved_project_path = medialinker.replace_single_file(PROJECT(), media_file.path, replace_file)
     actually_load_project(temp_saved_project_path, block_recent_files=False, is_first_video_load=False, is_autosave_load=False, replace_media_file_path=replace_file)
 
-    
 def _proxy_delete_warning_callback(dialog, response_id):
     dialog.destroy()
     if response_id == Gtk.ResponseType.OK:

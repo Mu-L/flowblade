@@ -28,15 +28,16 @@ NOTE: IMPORTANT!!! We can't rename or remove anything here without BREAKING USER
 NOTE: Do not use any external modules other then appconsts.
 """
 
+import appconsts
 
-INGEST_ENCODING = "ingenc"
-INGEST_RELATIONS = "ingtransrel"
-INGEST_ACTION = "ingaction"
+TRANSCODE_ENCODING = appconsts.TRANSCODE_ENCODING
+TRANSCODE_RELATIONS = appconsts.TRANSCODE_RELATIONS
+INGEST_ACTION = appconsts.INGEST_ACTION
 
-INGEST_ENCODING_NOT_SET = -1
-INGETS_ACTION_NOTHING = 0
-INGETS_ACTION_COPY = 1
-INGETS_ACTION_TRANSCODE = 2
+TRANSCODE_ENCODING_NOT_SET = appconsts.TRANSCODE_ENCODING_NOT_SET
+INGEST_ACTION_NOTHING = appconsts.INGEST_ACTION_NOTHING
+INGEST_ACTION_TRANSCODE_SELECTED = appconsts.INGEST_ACTION_TRANSCODE_SELECTED
+INGEST_ACTION_TRANSCODE_ALL = appconsts.INGEST_ACTION_TRANSCODE_ALL
 
 
 class ProjectProxyEditingData:
@@ -52,18 +53,18 @@ class IngestTranscodeData:
     
     def __init__(self):
         self.data = {}
-        self.data[INGEST_ENCODING] = 0
-        self.data[INGEST_RELATIONS] = {}
+        self.data[TRANSCODE_ENCODING] = 0
+        self.data[TRANSCODE_RELATIONS] = {}
         self.data[INGEST_ACTION] = 0
 
     def set_default_encoding(self, def_enc):
         self.data[INGEST_ENCODING] = def_enc
         
     def get_default_encoding(self):
-        return self.data[INGEST_ENCODING]
+        return self.data[TRANSCODE_ENCODING]
 
     def set_default_encoding(self, def_enc):
-        self.data[INGEST_ENCODING] = def_enc
+        self.data[TRANSCODE_ENCODING] = def_enc
 
     def get_action(self):
         return self.data[INGEST_ACTION]

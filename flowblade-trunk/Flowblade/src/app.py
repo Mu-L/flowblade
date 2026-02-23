@@ -492,6 +492,7 @@ def monkeypatch_callbacks():
     callbackbridge.modesetting_kftool_mode_from_kf_editor = modesetting.kftool_mode_from_kf_editor
     callbackbridge.movemodes_select_clip = movemodes.select_clip
     callbackbridge.movemodes_select_from_box_selection = movemodes.select_from_box_selection
+    callbackbridge.projectaction_actually_load_project = projectaction.actually_load_project
     callbackbridge.projectaction_open_rendered_file = projectaction.open_rendered_file
     callbackbridge.projectaction_open_file_names = projectaction.open_file_names
     callbackbridge.proxytranscodemanager_show_proxy_issues_window = proxytranscodemanager.show_proxy_issues_window
