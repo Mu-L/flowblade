@@ -874,9 +874,31 @@
         <group>Color</group>
         <property name="av.file" args="editor=file_select exptype=file_resource file_types=.cube.CUBE displayname=Select!.cube!file">/this/is/placeholder/value.cube</property>
    </filter>
-   
-   
-   
+   <filter id="hslprimaries">
+        <name>HSL Primaries</name>
+        <group>Color</group>
+        <property name="overlap" args="range_in=0,100 range_out=0,100 displayname=Overlap">0</property>
+        <property name="h_shift_red" args="range_in=0,360 range_out=0,360 displayname=Red!Hue!Shift">0</property>
+        <property name="s_scale_red" args="range_in=0,500 range_out=0,500 displayname=Red!Saturation">100</property>
+        <property name="l_scale_red" args="range_in=0,200 range_out=0,200 displayname=Red!Lightness">100</property>
+        <property name="h_shift_yellow" args="range_in=0,360 range_out=0,360 displayname=Yellow!Hue!Shift">0</property>
+        <property name="s_scale_yellow" args="range_in=0,500 range_out=0,500 displayname=Yellow!Saturation">100</property>
+        <property name="l_scale_yellow" args="range_in=0,200 range_out=0,200 displayname=Yellow!Lightness">100</property>
+        <property name="h_shift_green" args="range_in=0,360 range_out=0,360 displayname=Green!Hue!Shift">0</property>
+        <property name="s_scale_green" args="range_in=0,500 range_out=0,500 displayname=Green!Saturation">100</property>
+        <property name="l_scale_green" args="range_in=0,200 range_out=0,200 displayname=Green!Lightness">100</property>
+        <property name="h_shift_cyan" args="range_in=0,360 range_out=0,360 displayname=Cyan!Hue!Shift">0</property>
+        <property name="s_scale_cyan" args="range_in=0,500 range_out=0,500 displayname=Cyan!Saturation">100</property>
+        <property name="l_scale_cyan" args="range_in=0,200 range_out=0,200 displayname=Cyan!Lightness">100</property>
+        <property name="h_shift_blue" args="range_in=0,360 range_out=0,360 displayname=Blue!Hue!Shift">0</property>
+        <property name="s_scale_blue" args="range_in=0,500 range_out=0,500 displayname=Blue!Saturation">100</property>
+        <property name="l_scale_blue" args="range_in=0,200 range_out=0,200 displayname=Blue!Lightness">100</property>
+        <property name="h_shift_magenta" args="range_in=0,360 range_out=0,360 displayname=Magenta!Hue!Shift">0</property>
+        <property name="s_scale_magenta" args="range_in=0,500 range_out=0,500 displayname=Magenta!Saturation">100</property>
+        <property name="l_scale_magenta" args="range_in=0,200 range_out=0,200 displayname=Magenta!Lightness">100</property>
+   </filter>
+
+
     <!-- COLOR EFFECT -->
     <filter id="frei0r.cairogradient">
         <name>Gradient Tint</name>
@@ -972,7 +994,8 @@
         <property name="saturation" args="range_in=0,100 range_out=0,1 displayname=Saturation">0.5</property>
         <property name="lightness" args="range_in=-100,100 range_out=0,1 displayname=Lightness">0.5</property>
    </filter>
-   
+
+      
 
 
     <!-- DISTORT -->
