@@ -728,25 +728,25 @@ def load_filters_translations():
     param_names["Section Title Font"] = _("Section Title Font")
     param_names["Section Title Case"] = _("Section Title Case")
     param_names["Default Frames Per Page"] = _("Default Frames Per Page")
-    param_names["Overlap"] = ["Overlap"]
-    param_names["Red Hue Shift"] = ["Red Hue Shift"]
-    param_names["Red Saturation"] = ["Red Saturation"]
-    param_names["Red Lightness"] = ["Red Lightness"]
-    param_names["Yellow Hue Shift"] = ["Yellow Hue Shift"]
-    param_names["Yellow Saturation"] = ["Yellow Saturation"]
-    param_names["Yellow Lightness"] = ["Yellow Lightness"]
-    param_names["Green Hue Shift"] = ["Yellow Lightness"]
-    param_names["Green Saturation"] = ["Yellow Lightness"]
-    param_names["Green Lightness"] = ["Green Lightness"]
-    param_names["Cyan Hue Shift"] = ["Cyan Hue Shift"]
-    param_names["Cyan Saturation"] = ["Cyan Saturation"]
-    param_names["Cyan Lightness"] = ["Cyan Lightness"]
-    param_names["Blue Hue Shift"] = ["Blue Hue Shift"]
-    param_names["Blue Saturation"] = ["Blue Saturation"]
-    param_names["Blue Lightness"] = ["Blue Lightness"]
-    param_names["Magenta Hue Shift"] = ["Magenta Hue Shift"]
-    param_names["Magenta Saturation"] = ["Magenta Saturation"]
-    param_names["Magenta Lightness"] = ["Magenta Lightness"]
+    param_names["Overlap"] = _("Overlap")
+    param_names["Red Hue Shift"] = _("Red Hue Shift")
+    param_names["Red Saturation"] = _("Red Saturation")
+    param_names["Red Lightness"] = _("Red Lightness")
+    param_names["Yellow Hue Shift"] = _("Yellow Hue Shift")
+    param_names["Yellow Saturation"] = _("Yellow Saturation")
+    param_names["Yellow Lightness"] = _("Yellow Lightness")
+    param_names["Green Hue Shift"] = _("Yellow Lightness")
+    param_names["Green Saturation"] = _("Yellow Lightness")
+    param_names["Green Lightness"] = _("Green Lightness")
+    param_names["Cyan Hue Shift"] = _("Cyan Hue Shift")
+    param_names["Cyan Saturation"] = _("Cyan Saturation")
+    param_names["Cyan Lightness"] = _("Cyan Lightness")
+    param_names["Blue Hue Shift"] = _("Blue Hue Shift")
+    param_names["Blue Saturation"] = _("Blue Saturation")
+    param_names["Blue Lightness"] = _("Blue Lightness")
+    param_names["Magenta Hue Shift"] = _("Magenta Hue Shift")
+    param_names["Magenta Saturation"] = _("Magenta Saturation")
+    param_names["Magenta Lightness"] = _("Magenta Lightness")
 
 
     # Combo options
