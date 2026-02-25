@@ -278,8 +278,33 @@ class TranscodeManagerDialog:
         row_action = Gtk.HBox(False, 2)
         row_action.pack_start(self.ingest_action_select, False, False, 0)
         row_action.pack_start(Gtk.Label(), True, True, 0)
+
+        self.selection_label = guiutils.get_left_justified_box([Gtk.Label(label=_("Suggest Transcode for:"))])
+        self.selection_label.set_margin_top(4)
+        self.selection_label.set_margin_bottom(4)
+        self.variable_rate_cb = Gtk.CheckButton()
+        self.variable_rate_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_VARIABLEFR])
+        self.variable_rate_label = Gtk.Label(label=_("Variable Frame Rate Video"))
+        self.selrow1 = guiutils.get_checkbox_row_box(self.variable_rate_cb, self.variable_rate_label)
+        self.image_sequence_cb = Gtk.CheckButton()
+        self.image_sequence_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ])
+        self.image_sequence_label = Gtk.Label(label=_("Image Sequence Media"))
+        self.selrow2 = guiutils.get_checkbox_row_box(self.image_sequence_cb, self.image_sequence_label)
+        self.interlaced_cb = Gtk.CheckButton()
+        self.interlaced_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_INTERLACED])
+        self.interlaced_label = Gtk.Label(label=_("Interlaced Video"))
+        self.selrow3 = guiutils.get_checkbox_row_box(self.interlaced_cb, self.interlaced_label)
         
-        panel_action = guiutils.get_named_frame(_("Media Add Action"), row_action)
+        self.set_selection_gui_active(False)
+
+        ingest_section =  Gtk.VBox(False, 2)
+        ingest_section.pack_start(row_action, False, False, 0)
+        ingest_section.pack_start(self.selection_label, False, False, 0)
+        ingest_section.pack_start(self.selrow1, False, False, 0)
+        ingest_section.pack_start(self.selrow2, False, False, 0)
+        ingest_section.pack_start(self.selrow3, False, False, 0)
+
+        panel_action = guiutils.get_named_frame(_("Media Add Action"), ingest_section)
         panel_action.set_margin_top(24)
 
         vbox = Gtk.VBox(False, 2)
@@ -294,8 +319,22 @@ class TranscodeManagerDialog:
 
     def ingest_action_changed(self, action):
         editorstate.PROJECT().ingest_data.set_action(action)
+        if action == 1:
+            self.set_selection_gui_active(True)
+        else:
+            self.set_selection_gui_active(False)
 
-
+    def set_selection_gui_active(self, active):
+        self.selection_label.set_sensitive(active)
+        self.variable_rate_cb.set_sensitive(active)
+        self.variable_rate_label.set_sensitive(active)
+        self.selrow1.set_sensitive(active)
+        self.image_sequence_cb.set_sensitive(active)
+        self.image_sequence_label.set_sensitive(active)
+        self.selrow2.set_sensitive(active)
+        self.interlaced_cb.set_sensitive(active)
+        self.interlaced_label.set_sensitive(active)
+        self.selrow3.set_sensitive(active)
 
 class ProxyRenderIssuesWindow:
     def __init__(self, files_to_render, already_have_proxies, not_video_files, is_proxy_file, 
