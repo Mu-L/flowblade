@@ -52,7 +52,7 @@ PROXY_SIZE_QUARTER =  appconsts.PROXY_SIZE_QUARTER
 
 
 
-# ------------------------------------------------------------- event interface
+# ------------------------------------------------------------- interface
 def show_proxy_manager_dialog():
     global manager_window
     manager_window = ProxyManagerDialog()
@@ -71,10 +71,15 @@ def _set_media_files_to_use_unique_proxies(media_files_list):
     for media_file in media_files_list:
         media_file.use_unique_proxy = True
 
+def show_transcode_manager_dialog():
+    global manager_window
+    manager_window = TranscodeManagerDialog()
+    
 def _maybe_create_ingest_data():
     if editorstate.PROJECT().ingest_data == None:
         editorstate.PROJECT().ingest_data = miscdataobjects.IngestTranscodeData()
-            
+
+
 
 class ProxyManagerDialog:
     def __init__(self):
@@ -84,18 +89,10 @@ class ProxyManagerDialog:
 
 
         proxy_panel = self.get_proxy_panel()
-        ingest_panel = self.get_ingest_panel()
 
-        guiutils.set_margins(proxy_panel, 8, 12, 12, 12)
-        guiutils.set_margins(ingest_panel, 8, 12, 12, 12)
-
-        notebook = Gtk.Notebook()
-        #notebook.set_size_request(PREFERENCES_WIDTH, PREFERENCES_HEIGHT)
-        notebook.append_page(proxy_panel, Gtk.Label(label=_("Proxy Editing")))
-        notebook.append_page(ingest_panel, Gtk.Label(label=_("Transcode and Ingest")))
-        guiutils.set_margins(notebook, 4, 24, 6, 0)
+        guiutils.set_margins(proxy_panel, 8, 24, 12, 12)
             
-        self.dialog.vbox.pack_start(notebook, True, True, 0)
+        self.dialog.vbox.pack_start(proxy_panel, True, True, 0)
         dialogutils.set_outer_margins(self.dialog.vbox)
         
         self.dialog.connect('response', dialogutils.dialog_destroy)
@@ -200,46 +197,6 @@ class ProxyManagerDialog:
         vbox.pack_start(panel_onoff, False, False, 0)
 
         return vbox
-
-    def get_ingest_panel(self):
-
-        _maybe_create_ingest_data()
-            
-        # Encoding combo
-        self.ingest_enc_select = _get_transcode_encoding_combo()
-        self.ingest_enc_select.connect("changed", 
-                                        lambda w,e: self.ingest_encoding_changed(w.get_active()), 
-                                        None)
-
-        row_enc = Gtk.HBox(False, 2)
-        row_enc.pack_start(self.ingest_enc_select, False, False, 0)
-        row_enc.pack_start(Gtk.Label(), True, True, 0)
-        
-        panel_encoding = guiutils.get_named_frame(_("Transcode Optimized Encoding"), row_enc)
-
-        self.ingest_action_select = Gtk.ComboBoxText()
-        self.ingest_action_select.append_text(_("No Action"))
-        self.ingest_action_select.append_text(_("Suggest Transcode for Selected"))
-        self.ingest_action_select.append_text(_("Transcode All"))
-
-        self.ingest_action_select.set_active(editorstate.PROJECT().ingest_data.get_action())
-        self.ingest_action_select.connect(  "changed", 
-                                            lambda w,e: self.ingest_action_changed(w.get_active()), 
-                                            None)
-
-        row_action = Gtk.HBox(False, 2)
-        row_action.pack_start(self.ingest_action_select, False, False, 0)
-        row_action.pack_start(Gtk.Label(), True, True, 0)
-        
-        panel_action = guiutils.get_named_frame(_("Media Add Action"), row_action)
-        panel_action.set_margin_top(24)
-
-        vbox = Gtk.VBox(False, 2)
-        vbox.set_margin_top(12)
-        vbox.pack_start(panel_encoding, False, False, 0)
-        vbox.pack_start(panel_action, False, False, 0)
-
-        return vbox
         
     def set_convert_buttons_state(self):
         proxy_mode = editorstate.PROJECT().proxy_data.proxy_mode
@@ -264,12 +221,6 @@ class ProxyManagerDialog:
     def encoding_changed(self, enc_index):
         editorstate.PROJECT().proxy_data.encoding = enc_index
 
-    def ingest_encoding_changed(self, enc_index):
-        editorstate.PROJECT().ingest_data.set_default_encoding(enc_index)
-
-    def ingest_action_changed(self, action):
-        editorstate.PROJECT().ingest_data.set_action(action)
-
     def size_changed(self, size_index):
         editorstate.PROJECT().proxy_data.size = size_index
 
@@ -277,6 +228,73 @@ class ProxyManagerDialog:
         self.set_convert_buttons_state()
         self.set_mode_display_value()
         self.convert_progress_bar.set_fraction(0.0)
+
+
+
+class TranscodeManagerDialog:
+    def __init__(self):
+        self.dialog = Gtk.Dialog(_("Transcode Manager"), gui.editor_window.window,
+                            Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                            (_("Close Manager"), Gtk.ResponseType.CLOSE))
+
+        ingest_panel = self.get_ingest_panel()
+        ingest_panel.set_size_request(430, 50)
+
+        guiutils.set_margins(ingest_panel, 8, 24, 12, 12)
+
+            
+        self.dialog.vbox.pack_start(ingest_panel, True, True, 0)
+        dialogutils.set_outer_margins(self.dialog.vbox)
+        
+        self.dialog.connect('response', dialogutils.dialog_destroy)
+        self.dialog.show_all()
+
+    def get_ingest_panel(self):
+
+        _maybe_create_ingest_data()
+            
+        # Encoding combo
+        self.ingest_enc_select = _get_transcode_encoding_combo()
+        self.ingest_enc_select.connect("changed", 
+                                        lambda w,e: self.ingest_encoding_changed(w.get_active()), 
+                                        None)
+
+        row_enc = Gtk.HBox(False, 2)
+        row_enc.pack_start(self.ingest_enc_select, False, False, 0)
+        row_enc.pack_start(Gtk.Label(), True, True, 0)
+        
+        panel_encoding = guiutils.get_named_frame(_("Default Transcode Encoding"), row_enc)
+
+        self.ingest_action_select = Gtk.ComboBoxText()
+        self.ingest_action_select.append_text(_("No Action"))
+        self.ingest_action_select.append_text(_("Suggest Transcode for Selected"))
+        self.ingest_action_select.append_text(_("Transcode All"))
+
+        self.ingest_action_select.set_active(editorstate.PROJECT().ingest_data.get_action())
+        self.ingest_action_select.connect(  "changed", 
+                                            lambda w,e: self.ingest_action_changed(w.get_active()), 
+                                            None)
+
+        row_action = Gtk.HBox(False, 2)
+        row_action.pack_start(self.ingest_action_select, False, False, 0)
+        row_action.pack_start(Gtk.Label(), True, True, 0)
+        
+        panel_action = guiutils.get_named_frame(_("Media Add Action"), row_action)
+        panel_action.set_margin_top(24)
+
+        vbox = Gtk.VBox(False, 2)
+        vbox.set_margin_top(12)
+        vbox.pack_start(panel_encoding, False, False, 0)
+        vbox.pack_start(panel_action, False, False, 0)
+
+        return vbox
+
+    def ingest_encoding_changed(self, enc_index):
+        editorstate.PROJECT().ingest_data.set_default_encoding(enc_index)
+
+    def ingest_action_changed(self, action):
+        editorstate.PROJECT().ingest_data.set_action(action)
+
 
 
 class ProxyRenderIssuesWindow:
