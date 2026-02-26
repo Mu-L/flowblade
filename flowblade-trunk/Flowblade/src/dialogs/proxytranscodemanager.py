@@ -269,7 +269,6 @@ class TranscodeManagerDialog:
         self.ingest_action_select.append_text(_("No Action"))
         self.ingest_action_select.append_text(_("Suggest Transcode for Selected"))
         self.ingest_action_select.append_text(_("Transcode All"))
-
         self.ingest_action_select.set_active(editorstate.PROJECT().ingest_data.get_action())
         self.ingest_action_select.connect(  "changed", 
                                             lambda w,e: self.ingest_action_changed(w.get_active()), 
@@ -284,18 +283,22 @@ class TranscodeManagerDialog:
         self.selection_label.set_margin_bottom(4)
         self.variable_rate_cb = Gtk.CheckButton()
         self.variable_rate_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_VARIABLEFR])
+        self.variable_rate_cb.connect("toggled", self._variable_changed)
         self.variable_rate_label = Gtk.Label(label=_("Variable Frame Rate Video"))
         self.selrow1 = guiutils.get_checkbox_row_box(self.variable_rate_cb, self.variable_rate_label)
         self.image_sequence_cb = Gtk.CheckButton()
         self.image_sequence_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ])
+        self.image_sequence_cb.connect("toggled", self._imgseq_changed)
         self.image_sequence_label = Gtk.Label(label=_("Image Sequence Media"))
         self.selrow2 = guiutils.get_checkbox_row_box(self.image_sequence_cb, self.image_sequence_label)
         self.interlaced_cb = Gtk.CheckButton()
         self.interlaced_cb.set_active(editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_INTERLACED])
+        self.interlaced_cb.connect("toggled", self._interlaced_changed)
         self.interlaced_label = Gtk.Label(label=_("Interlaced Video"))
         self.selrow3 = guiutils.get_checkbox_row_box(self.interlaced_cb, self.interlaced_label)
         
-        self.set_selection_gui_active(False)
+        if editorstate.PROJECT().ingest_data.get_action() != appconsts.INGEST_ACTION_TRANSCODE_SELECTED:
+            self.set_selection_gui_active(False)
 
         ingest_section =  Gtk.VBox(False, 2)
         ingest_section.pack_start(row_action, False, False, 0)
@@ -323,6 +326,15 @@ class TranscodeManagerDialog:
             self.set_selection_gui_active(True)
         else:
             self.set_selection_gui_active(False)
+
+    def _variable_changed(self, widget):
+        editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_VARIABLEFR] = widget.get_active()
+
+    def _interlaced_changed(self, widget):
+        editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_INTERLACED] = widget.get_active()
+
+    def _imgseq_changed(self, widget):
+        editorstate.PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ] = widget.get_active()
 
     def set_selection_gui_active(self, active):
         self.selection_label.set_sensitive(active)

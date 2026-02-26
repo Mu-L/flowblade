@@ -444,18 +444,18 @@ class TranscodeRenderJobsCreateThread(threading.Thread):
         transcode_render_items = []
         for media_file in self.media_items:
             # More restrictions !!!?? or in GUI?
-            if media_file.type != appconsts.IMAGE_SEQUENCE:
-                md_str = hashlib.md5(str(os.urandom(32)).encode('utf-8')).hexdigest()
-                if self.external_render_folder == None: 
-                    transcode_file_path = str(userfolders.get_ingest_dir()) + md_str  + "." + encoding.extension
-                else:
-                    transcode_file_path = self.external_render_folder + md_str  + "." + encoding.extension
+            #if media_file.type != appconsts.IMAGE_SEQUENCE:
+            md_str = hashlib.md5(str(os.urandom(32)).encode('utf-8')).hexdigest()
+            if self.external_render_folder == None: 
+                transcode_file_path = str(userfolders.get_ingest_dir()) + md_str  + "." + encoding.extension
+            else:
+                transcode_file_path = self.external_render_folder + md_str  + "." + encoding.extension
 
-                item_data = ProxyRenderItemData(media_file.id, w, h, self.enc_index,
-                                                transcode_file_path, proxy_rate, media_file.path,
-                                                editorstate.PROJECT().profile.description(), 
-                                                None, True)
-                transcode_render_items.append(item_data)
+            item_data = ProxyRenderItemData(media_file.id, w, h, self.enc_index,
+                                            transcode_file_path, proxy_rate, media_file.path,
+                                            editorstate.PROJECT().profile.description(), 
+                                            None, True)
+            transcode_render_items.append(item_data)
 
         GLib.idle_add(self._create_job_queue_objects, transcode_render_items)
         

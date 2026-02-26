@@ -337,17 +337,28 @@ class AddMediaFilesThread(threading.Thread):
             else:
                 was_transcode_target_file = False 
                 
+                print(PROJECT().ingest_data, PROJECT().ingest_data.get_action(), PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ])
+                
                 # See if file to be transcoded on add.
-                if PROJECT().ingest_data != None and PROJECT().ingest_data.data[appconsts.INGEST_ACTION] == appconsts.INGEST_ACTION_TRANSCODE_ALL:
-                    if media_type == appconsts.VIDEO:
+                if PROJECT().ingest_data != None and PROJECT().ingest_data.get_action() == appconsts.INGEST_ACTION_TRANSCODE_ALL:
+                    if media_type == appconsts.VIDEO or media_type == appconsts.IMAGE_SEQUENCE:
                         was_transcode_target_file = True
-                        try:
-                            transcode_media_object = PROJECT().add_transcode_target_media_file(new_file, None, target_bin)
-                            to_be_transcoded.append(transcode_media_object)
-                            audio_levels_render_files.append(new_file)
-                            succes_new_file = new_file
-                        except projectdata.ProducerNotValidError as err:
-                            GLib.idle_add(self._not_valid_producer, err)
+                if PROJECT().ingest_data != None and PROJECT().ingest_data.get_action() == appconsts.INGEST_ACTION_TRANSCODE_SELECTED:
+                    producer = mlt.Producer(PROJECT().profile, new_file)
+                    if producer.is_valid() == True:
+                        producer.probe()
+                        info = utils.get_file_producer_info(producer)
+                        if media_type == appconsts.VIDEO and info["progressive"] ==False:
+                            was_transcode_target_file = True
+
+                if was_transcode_target_file == True:
+                    try:
+                        transcode_media_object = PROJECT().add_transcode_target_media_file(new_file, None, target_bin)
+                        to_be_transcoded.append(transcode_media_object)
+                        audio_levels_render_files.append(new_file)
+                        succes_new_file = new_file
+                    except projectdata.ProducerNotValidError as err:
+                        GLib.idle_add(self._not_valid_producer, err)
                         
                 if was_transcode_target_file == False:
                     # Main case, no transcode.
@@ -1235,8 +1246,19 @@ def _add_image_sequence_callback(dialog, response_id, data):
     resource_path = folder + "/" + resource_name_str
     length = (highest_number_part - int(number_part)) * ttl
 
-    PROJECT().add_image_sequence_media_object(resource_path, file_name + "(img_seq)", length, ttl)
+    # Check if img seq is to be transcoded.
+    was_transcode_target_file = False
+    print(PROJECT().ingest_data)
+    if PROJECT().ingest_data != None and PROJECT().ingest_data.get_action() == appconsts.INGEST_ACTION_TRANSCODE_SELECTED:
+        if PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ] == True:
+            was_transcode_target_file = True
 
+    if was_transcode_target_file == False:
+        PROJECT().add_image_sequence_media_object(resource_path, file_name + "(img_seq)", length, ttl)
+    else:
+        media_object = PROJECT().add_image_sequence_transcode_target_media_object(resource_path, file_name + "(img_seq)", length, ttl)
+        proxytranscodemanager.show_transcode_dialog([media_object], True)
+                
     gui.media_list_view.fill_data_model()
     gui.bin_list_view.fill_data_model()
 

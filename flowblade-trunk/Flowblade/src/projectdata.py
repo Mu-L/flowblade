@@ -138,6 +138,7 @@ class Project:
         media_object.length = length
         media_object.name = name
         media_object.ttl = ttl
+        return media_object
 
     def add_media_file(self, file_path, non_file_clip_name=None, target_bin=None):
         """
@@ -186,7 +187,16 @@ class Project:
         media_object.is_temp_transcode_target = True # to block GUI interaction.
         media_object.set_to_transcode_temp_icon()
         return media_object
-        
+
+    def add_image_sequence_transcode_target_media_object(self, resource_path, name, length, ttl):
+        media_object = self.add_image_sequence_media_object(resource_path, name, length, ttl)
+        media_object.length = length
+        media_object.name = name
+        media_object.ttl = ttl
+        media_object.is_temp_transcode_target = True # to block GUI interaction.
+        media_object.set_to_transcode_temp_icon()
+        return media_object
+
     def add_title_item(self, name, file_path, title_data, target_bin):
         (directory, file_name) = os.path.split(file_path)
         (fn, ext) = os.path.splitext(file_name)

@@ -24,7 +24,7 @@ Module contains constant values that are used by multiple modules in the applica
 
 PROJECT_FILE_EXTENSION = ".flb"
 
-# Media types for tracks or clips
+# Media types for tracks or clips, tracks only have VIDEO and AUDIO.
 UNKNOWN = 0
 VIDEO = 1
 AUDIO = 2
