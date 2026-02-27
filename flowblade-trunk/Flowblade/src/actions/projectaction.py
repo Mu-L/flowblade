@@ -337,8 +337,6 @@ class AddMediaFilesThread(threading.Thread):
             else:
                 was_transcode_target_file = False 
                 
-                print(PROJECT().ingest_data, PROJECT().ingest_data.get_action(), PROJECT().ingest_data.data[appconsts.TRANSCODE_SELECTED_IMGSEQ])
-                
                 # See if file to be transcoded on add.
                 if PROJECT().ingest_data != None and PROJECT().ingest_data.get_action() == appconsts.INGEST_ACTION_TRANSCODE_ALL:
                     if media_type == appconsts.VIDEO or media_type == appconsts.IMAGE_SEQUENCE:
