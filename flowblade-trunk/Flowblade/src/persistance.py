@@ -410,11 +410,12 @@ def load_project(file_path, icons_and_thumnails=True, relinker_load=False):
     # editorstate.project needs to be available for sequence building
     editorstate.project = project
 
-    # Set MLT profile. NEEDS INFO USER ON MISSING PROFILE!!!!!
+    # Set MLT profile.
     project.profile = mltprofiles.get_profile(project.profile_desc)
+    
+    persistancecompat.FIX_MISSING_PROJECT_ATTRS(project) # We need to do this before updating project profile to preview scaling.
+    
     previewscale.update_project_profile_to_preview_scaling(project)
-
-    persistancecompat.FIX_MISSING_PROJECT_ATTRS(project)
 
     # Some profiles may not be available in system
     # inform user on fix
