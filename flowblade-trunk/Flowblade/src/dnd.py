@@ -213,8 +213,11 @@ def _on_monitor_drop(widget, context, x, y, timestamp):
         callbackbridge.updater_set_and_display_monitor_media_file(media_file)
         gui.pos_bar.widget.grab_focus()
     except:
-        range_log_drop_on_monitor(max(drag_data[0].get_indices())) # drag_data is Gtk.TreePath
-
+        try:
+            range_log_drop_on_monitor(max(drag_data[0].get_indices())) # drag_data is Gtk.TreePath
+        except:
+            pass # We get here if drag boths starts and stops in monitor
+        
 def _on_effect_stack_drop(widget, context, x, y, timestamp):
     context.finish(True, False, timestamp)
     

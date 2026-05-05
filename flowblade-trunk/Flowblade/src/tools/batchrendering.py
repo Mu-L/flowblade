@@ -1320,7 +1320,11 @@ class SingleRenderLaunchThread(threading.Thread):
         editorstate.PLAYER().stop_consumer()
         
         # hw_accel=vaapi hangs on exit for rendering, disable until reason known.
-        hw_accel = os.environ["MLT_AVFORMAT_HWACCEL"]
+        try:
+            hw_accel = os.environ["MLT_AVFORMAT_HWACCEL"]
+        except:
+            hw_accel = ""
+
         os.environ["MLT_AVFORMAT_HWACCEL"] = ""
         
         # Launch render process and wait for it to end
