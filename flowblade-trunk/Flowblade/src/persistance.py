@@ -412,15 +412,15 @@ def load_project(file_path, icons_and_thumnails=True, relinker_load=False):
 
     # Set MLT profile.
     project.profile = mltprofiles.get_profile(project.profile_desc)
-    
-    persistancecompat.FIX_MISSING_PROJECT_ATTRS(project) # We need to do this before updating project profile to preview scaling.
-    
-    previewscale.update_project_profile_to_preview_scaling(project)
 
     # Some profiles may not be available in system
     # inform user on fix
     if project.profile == None:
         raise ProjectProfileNotFoundError(project.profile_desc)
+
+    persistancecompat.FIX_MISSING_PROJECT_ATTRS(project) # We need to do this before updating project profile to preview scaling.
+    
+    previewscale.update_project_profile_to_preview_scaling(project)
 
     for k, media_file in project.media_files.items():
         media_file.current_frame = 0 # this is always reset on load, value is not considered persistent.
