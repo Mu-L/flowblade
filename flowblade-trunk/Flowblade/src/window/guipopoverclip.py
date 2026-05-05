@@ -466,8 +466,8 @@ def _fill_multi_audio_section(multi_audio_section, clip, track, callback):
     add_menu_action(multi_audio_section, _("Unmute Audio"), "multiclipmenu.unmuteaudio",  ("multi_unmute_audio", None), callback, active, None, "toggle_audio_mute")
 
 def _fill_multi_sync_section(sync_section, clip, track, callback):
-    add_menu_action(sync_section,_("Select Sync Parent Clip..."), "clipmenu.multisetmaster",  ("multi_set_master", None), callback, active, None, "set_sync_relation")
-    add_menu_action(sync_section,_("Resync"), "clipmenu.multiresync",  ("multi_resync", None), callback, None, "resync_selected")
+    add_menu_action(sync_section,_("Select Sync Parent Clip..."), "clipmenu.multisetmaster",  ("multi_set_master", None), callback, True, None, "set_sync_relation")
+    add_menu_action(sync_section,_("Resync"), "clipmenu.multiresync", ("multi_resync", None), callback, True, None, "resync_selected")
     add_menu_action(sync_section,_("Clear Sync Relations"), "clipmenu.multiclearsyncrel",  ("multi_clear_sync_rel", None), callback, True, None, "clear_sync_relation")
 
 def _fill_audio_menu(audio_submenu, clip, track, callback):
