@@ -531,7 +531,7 @@ def playback_setting_popupmenu_show(launcher, widget, callback, decode_callback,
         _scaling_section = menu_clear_or_create(_scaling_section)
         items_data = [( _("No Scaling"), "noscaling"), ( _("1080p"), "scaling1080"), ( _("720p"), "scaling720"), (_("540p"), "scaling540"), (_("360p"), "scaling360")]
         options = ["noscaling", "scaling1080","scaling720", "scaling540", "scaling360"]
-        active_index = 0 #options.index(PROJECT().get_project_property(appconsts.P_PROP_PLAYBACK_INTERPOLATION))
+        active_index = options.index(PROJECT().preview_scale)
         add_menu_action_all_items_radio(_scaling_section, items_data, "playback.scaling", active_index, scaling_callback)
         _playback_settings_menu.append_section(None, _scaling_section)
 
