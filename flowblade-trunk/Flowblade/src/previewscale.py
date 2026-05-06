@@ -69,7 +69,7 @@ def set_scaling_from_menu(new_value_variant):
 def set_scaling(scaling):
     if PROJECT().preview_scale == scaling:
         return
-    
+
     old_scaled_height = get_scaling_height(PROJECT().preview_scale)
     
     PROJECT().preview_scale = scaling
@@ -92,6 +92,8 @@ def set_scaling(scaling):
 def update_project_profile_to_preview_scaling(project):
     if project.preview_scale == appconsts.PREVIEW_SCALE_NONE:
         return
+
+    set_scale_heights(project.preview_scale)
     
     height = get_scaling_height(project.preview_scale)
     width = int(project.unscaled_width * height / project.unscaled_height)
